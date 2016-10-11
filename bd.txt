@@ -9,6 +9,6 @@ CREATE TABLE mensajes (
 id INT AUTO_INCREMENT PRIMARY KEY,
 id_emi INT,
 id_rec INT,
-message varchar(120),
+message TEXT(120),
 time_stamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );

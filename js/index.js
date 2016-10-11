@@ -1,12 +1,14 @@
 $(document).ready(function () {
 
+  /* this is the ip direction that the client will use to connect to the server.
+   If you change the port remember to do the same on /bin/chat-server.php */
   var wsServer = 'ws://181.74.195.247:8080';
   var conn = new WebSocket(wsServer);
   bindConnEvents(conn);
 
   var php_responce = "src/responce.php";
   var $chatContainer = $( "#chat-container" );
-  var cb_size = 265 + 9;  // Tamaño de un chat-box
+  var cb_size = 265 + 9;  // Width of a chat-box + a pinch
   var idReconnInterval, reconnRate = 5000;
 
   var template = '<div id=":dest_id:" class="cb">'+
@@ -26,7 +28,7 @@ $(document).ready(function () {
   ':message_holder:'+
   '</class></div></span>';
 
-  var excess_template = '<div class="ce hide"><div class="ce-select"></div><div class="chat-excess">'+
+  var excess_template = '<div class="ce hide"><div class="ce-select hide"></div><div class="chat-excess">'+
   '<p>0</p></div></div>';
 
   var msgGroup_template = '<span class=":from: msg-group new"></span>';
@@ -49,9 +51,9 @@ $(document).ready(function () {
     loadTest(100);
   })
 
-  /* Funcion rutina que se encarga del exceso de chat-box sobre la ventana
-      - Aparece y oculta el chat-excess.
-      - Actualiza el numero de chat-box ocultos.*/
+  /* Routine function that is responsible for the chat-excess display.
+      - Appear and hide the chat-excess.
+      - Update the number of chat-box hidden.*/
   function updateCEStatus() {
     $(".ce p").text($(".cb.cb-hide").size());
     if ( $(".cb.cb-hide").size() > 0 ) {
@@ -62,10 +64,10 @@ $(document).ready(function () {
     $(".ce-select").css({top:-height_ce});
   }
 
-  /* Funcion rutina que se encarga de la forma de los chat-box
-      - Aparece y oculta los chat-box que no caben en la ventana.
-      - Maneja la altura de los chat-box cuando la altura de
-        la ventana es mas pequeña que un chat-box desplegado.*/
+  /* Routine function that is responsible for the correct display of the chat-box in the chat container.
+      - Appear and hide the chat-box that does not fit in the window.
+      - manage the height of the maximised chat-box when the height of
+        the window is lower than the height of a maximised chat-box.*/
   function updateChatBoxes() {
     var xx = Math.round(($(window).width()-cb_size)/cb_size);
     var yy = $(window).height();
@@ -91,9 +93,8 @@ $(document).ready(function () {
     }
   }
 
-  /* Comprueba si hay usuario registrado en _SESSION.
-    Tambien es utilizada para registrar el ID de la
-     cuenta activa en el servidor web*/
+  /* Checks if there are a user registered in _SESSION. It is used too
+  to register the id of this connection in the websocket server.*/
   function isSessionAlive(p_conn) {
     $query = "type=sessionAlive";
 
@@ -119,7 +120,7 @@ $(document).ready(function () {
     }});
   }
 
-  /* Crear una nueva chat-box a partir de un ID o Nickname */
+  /* Create a new chat-box from an ID or Nickname */
   function newChat(nc_nick=null, nc_id=null) {
     var a = {conn_user: nc_nick, type: "getusrid"};
     if( nc_id ){
@@ -155,8 +156,8 @@ $(document).ready(function () {
     });
   }
 
-  /* Pide al servidor n_msg cantidad de mensajes para la conversacion
-    con id_rec y los carga en el chat-box correspondiente */
+  /* Request to the server for n_msg amount of messages for the chat
+  with the id_rec. Then load the messages in the corresponding chat-box. */
   function loadHist(id_rec, n_msg){
       var a = {id_rec: id_rec, type: "gethist", nmsg: n_msg};
       $query = $.param(a);
@@ -214,8 +215,8 @@ $(document).ready(function () {
       });
   }
 
-  /* Esta funcion es llamada por un setInterval para intentar
-   recuperar la coneccion con el servidor cuando esta se pierda */
+  /* This function is called from onClose event to try to recover
+   the connection with the server. Is called inside a setInterval. */
   function tryReconect() {
       if( conn.readyState === conn.CLOSED ) {
           conn = new WebSocket(wsServer);
@@ -229,8 +230,8 @@ $(document).ready(function () {
           }
       }
   }
-  /* Funcion que ajusta los espacios entre mensajes
-   cuando existen mensajes adyacentes del mismo autor */
+  /* Function that groups the adjacent messages from
+   the same author in the same group-message container. */
   function checkChatFlow($chatBox, typeNM){
       $chatHist = $chatBox.find(".cb-hist");
       $lastGroup = $chatBox.find("span.msg-group:last");
@@ -270,7 +271,6 @@ $(document).ready(function () {
       return o;
   };
 
-  // #### SECCION DE PRUEBAS ####   >>>>>>
 
   function bindConnEvents(p_cnx) {
       p_cnx.onopen = function(e) {
@@ -287,11 +287,11 @@ $(document).ready(function () {
 
           if( $JSON_data.hasOwnProperty('type') ){
             switch ($JSON_data['type']) {
-              case "pushmsg":  // Confirmacion de mensaje enviado por este id
+              case "pushmsg":  // Confirmation that the sent message has been written in the database.
               if( $JSON_data['success'] == 1 ){
 
                 $rec_container = $("#chat-container").find("#"+$JSON_data['id_rec']);
-                if( $rec_container.length ){  // si la conversacion esta abierta
+                if( $rec_container.length ){
                   $msg_final = msg_template.replace(':message_holder:',
                   $JSON_data['message']);
 
@@ -310,7 +310,7 @@ $(document).ready(function () {
               }
               break;
 
-              case "newmsg":  // Recivir mensajes entrantes
+              case "newmsg":  // The server notice for a new message
               $rec_container = $("#chat-container").find("#"+$JSON_data['from_id']);
 
               if( !$rec_container.length ){
@@ -358,108 +358,124 @@ $(document).ready(function () {
       }
   }
 
-  // #### SECCION DE PRUEBAS ####   <<<<<<
-
-
-
-  // Crear nuevo chat-box mediante formulario
+  // Creates a new chat from a nickname.
   $("#new-chat").click(function (ev) {
-    newChat(nc_nick=$("#dest-id").val());
+      newChat(nc_nick=$("#dest-id").val());
   })
 
-  // Controlar el ancho de chat-container en el evento resize
+  /* Calls the functions that manage the display of the of
+   the chat-container when the resize event is called.*/
   $( window ).bind('resize',function() {
-    updateChatBoxes();
-    updateCEStatus();
+      updateChatBoxes();
+      updateCEStatus();
   });
 
-  // Maximisar/minimisar chat-box / Cerrar chat-box
+  // Controls for chat-box.
   $chatContainer.on('click', '.cb-head', function (ev) {
-    if( $(this).closest(".cb").not(".cb-hide").length ) { // si no esta en chat-excess
-      $(this).closest(".chat-box").toggleClass("chat-box-max");
-      if( $(this).closest(".chat-box").hasClass("chat-box-max") ) {
-        updateChatBoxes();  // REVIZAR *******************
-        $(this).closest(".chat-box input[name='message']").focus();
-      }
+    /* If chat-box outside chat-excess is clicked, then change
+     chat-box from the max size to the min size and vice versa */
+    if( $(this).closest(".cb").not(".cb-hide").length ) {
+        $(this).closest(".chat-box").toggleClass("chat-box-max");
+        if( $(this).closest(".chat-box").hasClass("chat-box-max") ) {
+            updateChatBoxes();  // REVIZAR *******************
+            $(this).closest(".chat-box input[name='message']").focus();
+        }
     }
-  }).on('click', '.btn-quit', function (ev) {
-    $(this).closest(".cb").remove();
-    updateChatBoxes();
-    updateCEStatus();
+    /* If chat-box in chat-excess is clicked, this one change
+     place with a chat-box outside the chat-excess */
+    else {
+        $targetMinim = $(".cb").not(".cb-hide").filter(":last");
+        console.log($targetMinim);
+        $targetMinim.addClass("cb-hide");
+        $(".ce-select").prepend($targetMinim);
+
+        $targetMaxim = $(this).closest(".cb");
+        $targetMaxim.removeClass("cb-hide");
+        $("#chat-container").append($targetMaxim);
+
+        updateChatBoxes();
+        updateCEStatus();
+    }
+  }).on('click', '.btn-quit', function (ev) {  // Close chat-box
+      $(this).closest(".cb").remove();
+      updateChatBoxes();
+      updateCEStatus();
   })
 
-  // Mostrar ocultar selector de chat-excess // ARREGLAR
+  // Display and hide the chat-excess selector. // ARREGLAR
   $chatContainer.on('click', '.chat-excess', function (ev) {
-    $(this).closest(".ce-select").toggleClass("hide");
+      $(this).parent().find(".ce-select").toggleClass("hide");
   })
 
-  // Enviar mensaje
+  /* Function that is responsible for send message in every chat-box. */
   $chatContainer.on('submit', '.cb-form', function (ev) {
-    ev.preventDefault();
-    $thisContext = $(this);
-    trimmedValue = jQuery.trim($(this).find("input[name='message']").val());
+      ev.preventDefault();
+      $thisContext = $(this);
+      trimmedValue = jQuery.trim($(this).find("input[name='message']").val());
 
-    if( trimmedValue != "" ){
-      $thisContext.find("input[name='message']").val(trimmedValue);
+      if( trimmedValue != "" ){
+          $thisContext.find("input[name='message']").val(trimmedValue);
+
+          $.ajax({
+          data: "type=getsession",
+          url: php_responce,
+          type: "GET",
+          datatype: "json",
+          success: function(data)
+          {
+              $JSON_session = jQuery.parseJSON( data );
+              $JSON_query = $thisContext.serializeObject();
+              $JSON_query['type'] = "sendm";
+              $JSON_query['user_id'] = $JSON_session['user_id'];
+              $JSON_query['user_passwd'] = $JSON_session['user_passwd'];
+
+              console.log("Esto enviare: "+JSON.stringify($JSON_query));
+              conn.send(JSON.stringify($JSON_query));
+
+              $thisContext.find("input[name='message']").val("");
+          },
+          error: function(result) {
+              console.log("AJAX NOT WORKING (send message) ***");
+          }
+          });
+      }
+  })
+
+  /* Sign in formulary. It hides when the user is logged. */
+  $("#sign-form").submit(function(ev) {
+      ev.preventDefault();
+      $query = $("#sign-form").serialize();
+      $query = $query.concat("&type=sign");
+      //console.log($query);
 
       $.ajax({
-      data: "type=getsession",
+      data: $query,
       url: php_responce,
       type: "GET",
       datatype: "json",
       success: function(data)
       {
-          $JSON_session = jQuery.parseJSON( data );
-          $JSON_query = $thisContext.serializeObject();
-          $JSON_query['type'] = "sendm";
-          $JSON_query['user_id'] = $JSON_session['user_id'];
-          $JSON_query['user_passwd'] = $JSON_session['user_passwd'];
-
-          console.log("Esto enviare: "+JSON.stringify($JSON_query));
-          conn.send(JSON.stringify($JSON_query));
-
-          $thisContext.find("input[name='message']").val("");
+          var $JSON_data = jQuery.parseJSON( data );
+          if( $JSON_data.user_id >= 0 ){
+            $("#sign-container").fadeOut("fast");
+            isSessionAlive(conn);
+          } else {
+            alert("El usuario no existe o la contraseña es incorrecta.");
+          }
+          console.log("Inicio de session: "+data);
       },
-      error: function(result) {
-          console.log("AJAX NOT WORKING (send message) ***");
-      }
-      });
-    }
-
-  })
-
-  // Sistema de inicio de sesion
-  $("#sign-form").submit(function(ev) {
-    ev.preventDefault();
-    $query = $("#sign-form").serialize();
-    $query = $query.concat("&type=sign");
-    //console.log($query);
-
-    $.ajax({
-    data: $query,
-    url: php_responce,
-    type: "GET",
-    datatype: "json",
-    success: function(data)
-    {
-        var $JSON_data = jQuery.parseJSON( data );
-        if( $JSON_data.user_id >= 0 ){
-          $("#sign-container").fadeOut("fast");
-          isSessionAlive(conn);
-        } else {
-          alert("El usuario no existe o la contraseña es incorrecta.");
-        }
-        console.log("Inicio de session: "+data);
-    },
-    error: function() {
-        console.log("AJAX NOT WORKING (session sign) ***");
-    }});
+      error: function() {
+          console.log("AJAX NOT WORKING (session sign) ***");
+      }});
   });
 
-  //Rutina de inicio
+  // START ROUTINE  >>>>
 
   $chatContainer.append($(excess_template));
   isSessionAlive(conn);
+
+  // START ROUTINE  <<<<
+
   newChat("colorless_41",null);
   newChat("claroscuro",null);
   newChat("sebastian",null);

@@ -1,7 +1,7 @@
 <!DOCTYPE HTML>
 <html>
 <head>
-  <title>Curso jQuery</title>
+  <title>Chat</title>
   <meta charset="utf-8">
   <link rel="stylesheet" href='https://fonts.googleapis.com/css?family=Roboto' type="text/css">
   <link rel="stylesheet" href="css/index.css" media="screen">

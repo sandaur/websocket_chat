@@ -1,10 +1,12 @@
 <?php
     namespace Src;
-    include 'conn.php';
     include 'header.php';
+    include 'Conect.php';
     header('Content-type: text/plain; charset=utf-8');
 
     $json_responce = array();
+    $c = new Conect;
+    $conn = $c->getConection();
 
     // Inicio de sesion. Devuelve id e inicia la sesion
     if( $_GET['type'] == 'sign' ){

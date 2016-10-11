@@ -60,7 +60,7 @@ body {
 
 .ce-select {
   position: absolute;
-  background-color: #c78697;
+  background-color: #88c786;
   width: 150px;
 
   z-index: 20;
@@ -69,11 +69,8 @@ body {
 .chat-excess {
   width: 34px;
   height: 100%;
-  background-color: #3498db;
+  background-color: #154f2f;
   bottom: 0;
-  position: absolute;
-
-  z-index: 20;
 }
 
 .chat-excess p {
