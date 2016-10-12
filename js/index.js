@@ -320,8 +320,16 @@ $(document).ready(function () {
 
               if( $rec_container.length ){
                 $msg_final = msg_template.replace(':message_holder:',
-                $JSON_data['message']);
+                            $JSON_data['message']);
+                $hist = $rec_container.find(".cb-hback");
+                $fBottom = false;
+                /* If the scroll was in the bottom before receive a message the scroll
+                  will keep in the bottom after the message have been received*/
+                if($hist.scrollTop() + $hist.innerHeight() >= $hist[0].scrollHeight){
+                    $fBottom = true;
+                }
 
+                /* Add the message to the chat history */
                 $groupMsg = checkChatFlow($rec_container, "m-rcv");
                 if( $groupMsg.hasClass("new") ){
                     $groupMsg.removeClass("new");
@@ -330,11 +338,13 @@ $(document).ready(function () {
                     $groupMsg.append(img_avatar);
                     $rec_container.find(".cb-hist").append($groupMsg);
                 } else {
-                  $groupMsg.append($msg_final);
+                    $groupMsg.append($msg_final);
                 }
 
-                var $objDiv = $rec_container.find(".cb-hback");
-                $objDiv.scrollTop($objDiv[0].scrollHeight);
+                /* Make the scroll go to bottom if the flag was turned on. */
+                if( $fBottom ) {
+                    $hist.scrollTop($hist[0].scrollHeight);
+                }
               }
               break;
 
@@ -393,6 +403,7 @@ $(document).ready(function () {
         $targetMaxim.removeClass("cb-hide");
         $("#chat-container").append($targetMaxim);
 
+        $(".ce-select").addClass("hide");
         updateChatBoxes();
         updateCEStatus();
     }
@@ -404,7 +415,7 @@ $(document).ready(function () {
 
   // Display and hide the chat-excess selector. // ARREGLAR
   $chatContainer.on('click', '.chat-excess', function (ev) {
-      $(this).parent().find(".ce-select").toggleClass("hide");
+      $(".ce-select").toggleClass("hide");
   })
 
   /* Function that is responsible for send message in every chat-box. */
@@ -477,7 +488,6 @@ $(document).ready(function () {
   // START ROUTINE  <<<<
 
   newChat("colorless_41",null);
-  newChat("claroscuro",null);
   newChat("sebastian",null);
 
 })
