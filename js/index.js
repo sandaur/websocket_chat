@@ -15,7 +15,9 @@ $(document).ready(function () {
   '<img src=":avatar:" class="img-holder" alt="foto" />'+
   '<div class="chat-box">'+
   '<div class="cb-head">:nickname:<div class="btn-quit">X</div></div>'+
-  '<div class="cb-hback"><div class="cb-hist"></div></div>'+
+  '<div class="cb-bhback">'+
+  '<div class="hist-alert">Hay un nuevo mensaje. Baja para verlo.</div>'+
+  '<div class="cb-hback"><div class="cb-hist"></div></div> </div>'+
   '<div class="cb-input">'+
   '<form class="cb-form" action="index.html" method="post">'+
   '<input type="text" name="message" autocomplete="off">'+
@@ -145,6 +147,7 @@ $(document).ready(function () {
           if( $("#"+$JSON_data.dest_id).length == 0 ){
             $chatContainer.append(chat);
             loadHist($JSON_data.dest_id, 15);
+            $(('#'+$JSON_data.dest_id)).find('.cb-hback').bind('scroll',scrollToBottom);
             updateChatBoxes();
             updateCEStatus();
           } else {alert("Ya existe ese chat!  (nuevo chat por *NICK/ID*)");}
@@ -254,6 +257,21 @@ $(document).ready(function () {
       }
   }
 
+  function showChatAlert($chatBox){
+    $chatBox.find(".cb-bhback").addClass("show-alert");
+  }
+
+  /* Function that is called for the event scroll in every chat-box.
+    If the scroll of the history arrive to the bottom, the alert get hide.*/
+  function scrollToBottom(e){
+    var elem = $(e.currentTarget);
+    if (elem[0].scrollHeight - elem.scrollTop() == elem.outerHeight())
+    {
+        elem.parent().removeClass("show-alert");
+    }
+  }
+
+
   $.fn.serializeObject = function()
   {
       var o = {};
@@ -344,6 +362,8 @@ $(document).ready(function () {
                 /* Make the scroll go to bottom if the flag was turned on. */
                 if( $fBottom ) {
                     $hist.scrollTop($hist[0].scrollHeight);
+                } else {
+                  showChatAlert($rec_container);
                 }
               }
               break;
@@ -450,6 +470,13 @@ $(document).ready(function () {
           }
           });
       }
+  })
+
+  /* When the alert dialog is clicked, the dialog is closed and the scroll go to bottom */
+  $chatContainer.on("click", ".hist-alert", function(ev) {
+      $hist = $(this).parent().find(".cb-hback");
+      $hist.scrollTop($hist[0].scrollHeight);
+      $(this).parent().removeClass("show-alert");
   })
 
   /* Sign in formulary. It hides when the user is logged. */
