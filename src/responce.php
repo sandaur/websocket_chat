@@ -67,29 +67,33 @@
     }
     // Devolver X mensajes antiguos. _GET {type, id_rec, nmsg}
     else if( $_GET["type"] == "gethist" ){
-        $sql = "SELECT * FROM mensajes WHERE (id_emi=".$_SESSION['user_id']." AND id_rec=".$_GET['id_rec'].") OR (id_emi=".$_GET['id_rec']." AND id_rec=".$_SESSION['user_id'].") ORDER BY -time_stamp";
-        $result = mysqli_query($conn, $sql);
-        $count = 0;
+        if( isset($_SESSION['user_id']) ){
+            $sql = "SELECT * FROM mensajes WHERE (id_emi=".$_SESSION['user_id']." AND id_rec=".$_GET['id_rec'].") OR (id_emi=".$_GET['id_rec']." AND id_rec=".$_SESSION['user_id'].") ORDER BY time_stamp DESC LIMIT ".$_GET['nmsg']." OFFSET ".$_GET['offset'];
+            $result = mysqli_query($conn, $sql);
+            $count = 0;
 
-        if (mysqli_num_rows($result) > 0 ) {
+            if (mysqli_num_rows($result) > 0 ) {
 
-            $msgs = array();
-            while($row = mysqli_fetch_assoc($result)) {
+              $msgs = array();
+              while($row = mysqli_fetch_assoc($result)) {
                 $msg_ind = array();
                 $msg_ind['msg'] = $row['message'];
                 $msg_ind['emi'] = $row['id_emi'];
                 array_unshift($msgs, $msg_ind);
 
-                $count = $count + 1;
+                /*$count = $count + 1;
                 if( $count >= $_GET['nmsg'] ){
                   break;
-                }
+                }*/
+              }
+              $json_responce['messages'] = $msgs;
+              $json_responce['success'] = "1";
+              $json_responce['query'] = $sql;
+            } else {
+              $json_responce['success'] = "0";   // No hay mensajes para esta peticion
             }
-            $json_responce['messages'] = $msgs;
-            $json_responce['success'] = "1";
-            $json_responce['query'] = $sql;
         } else {
-            $json_responce['success'] = "0";   // No hay mensajes para esta peticion
+          $json_responce['success'] = "0";   // No hay session iniciada.
         }
     }
     // Enviar variables de session
@@ -113,6 +117,12 @@
           $json_responce["success"] = "0";
           $json_responce["respuesta"] = $sql;
       }
+    }
+    // Close session
+    else if( $_GET["type"] == "closesession" ){
+      session_destroy();
+
+      $json_responce["success"] = "1";
     }
 
     echo json_encode($json_responce);

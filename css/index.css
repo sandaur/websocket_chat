@@ -261,6 +261,11 @@ span.m-rcv, span.m-rcv .indiv {
   overflow: hidden;
 }
 
+.chat-start {
+  width: 100%;
+  background-color: #24699c;
+}
+
 /* Sign in Styles NEXT */
 
 #sign-container {

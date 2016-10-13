@@ -35,6 +35,9 @@ $(document).ready(function () {
 
   var msgGroup_template = '<span class=":from: msg-group new"></span>';
   var img_foto_template = '<img src=":avatar:" alt="foto" />';
+  var chat_start = $("<div class='chat-start'>Primer mensaje envido en 22/02/2013.</div>");
+
+  var $loader = $("<div class='loader-cont'><div class='loader-chist'></div></div>");
 
 
   var connections = [];
@@ -138,7 +141,6 @@ $(document).ready(function () {
       datatype: "json",
       success: function(data)
       {
-        console.log("Nuevo Chat: "+data);
         var $JSON_data = jQuery.parseJSON( data );
         if( $JSON_data.dest_id >= 0 ){
           var chat = template.replace(/:dest_id:/g, $JSON_data.dest_id)
@@ -150,8 +152,8 @@ $(document).ready(function () {
             $(('#'+$JSON_data.dest_id)).find('.cb-hback').bind('scroll',scrollToBottom);
             updateChatBoxes();
             updateCEStatus();
-          } else {alert("Ya existe ese chat!  (nuevo chat por *NICK/ID*)");}
-        } else {alert("No existe un usuario con ese nombre!");}
+          } else {alert("CHAT ALREADY OPEN!  (newChat)");}
+        } else {alert("There is no user with that nickname!");}
       },
       error: function(result) {
         console.log("AJAX NOT WORKING (newChat) ***");
@@ -161,9 +163,20 @@ $(document).ready(function () {
 
   /* Request to the server for n_msg amount of messages for the chat
   with the id_rec. Then load the messages in the corresponding chat-box. */
-  function loadHist(id_rec, n_msg){
-      var a = {id_rec: id_rec, type: "gethist", nmsg: n_msg};
+  function loadHist(id_rec, n_msg, rmv_former=false, add_more=false){
+      var a = {id_rec: id_rec, type: "gethist", nmsg: n_msg, offset: "0"};
+
+      if( add_more ){
+          a['offset'] = $("#chat-container").find("#"+id_rec).find(".indiv").length;
+      }
+
       $query = $.param(a);
+      $rec_container = $("#chat-container").find("#"+id_rec);
+      if( $rec_container.find(".chat-start").length == 0 ){
+          $rec_container.find(".cb-hback").prepend($loader);
+      } else if( !add_more ){
+          $rec_container.find(".cb-hback").prepend($loader);
+      }
 
       $.ajax({
         data: $query,
@@ -174,48 +187,107 @@ $(document).ready(function () {
         {
           var $JSON_data = jQuery.parseJSON( data );
           if( $JSON_data.success == 1 ){
-            $rec_container = $("#chat-container").find("#"+id_rec);
 
+            // If the chat is not instantiated then create it.
             if( !$rec_container.length ){
-              newChat(null,nc_id=$JSON_data['from_id']);
-              $rec_container = $("#chat-container").find("#"+id_rec);
+                newChat(null,nc_id=$JSON_data['from_id']);
+                $rec_container = $("#chat-container").find("#"+id_rec);
+            } else if( rmv_former ){  // Remove former messages if rmv_former.
+                $rec_container.find(".msg-group").remove();
             }
-            for (var i = 0; i < $JSON_data.messages.length; i++) {
 
-              if( $rec_container.length ){
-                $msg_final = msg_template.replace(':message_holder:',
-                $JSON_data.messages[i].msg);
+            if( add_more ){ // Add former messages to the top of the history.
+                $temp_cont = $("<div></div>");
 
-                if($JSON_data.messages[i].emi == id_rec){
-                  $groupMsg = checkChatFlow($rec_container, "m-rcv");
-                }else {
-                  $groupMsg = checkChatFlow($rec_container, "m-send");
+                if( $rec_container.length ){
+                    for (var i = 0; i < $JSON_data.messages.length; i++) {
+                      $msg_final = msg_template.replace(':message_holder:',
+                      $JSON_data.messages[i].msg);
+
+                      if($JSON_data.messages[i].emi == id_rec){
+                        $groupMsg = checkChatFlow($temp_cont, "m-rcv");
+                      }else {
+                        $groupMsg = checkChatFlow($temp_cont, "m-send");
+                      }
+
+                      if( $groupMsg.hasClass("new") ){
+                        $groupMsg.removeClass("new");
+                        $groupMsg.append($msg_final);
+                        /* FIXME: image appear in both m-rcv and m-send. should only do in m-rcv. */
+                        img_avatar = img_foto_template.replace(':avatar:',$rec_container.find(".img-holder").attr('src'));
+                        $groupMsg.append(img_avatar);
+
+                        $temp_cont.append($groupMsg);
+                      } else {
+                        $groupMsg.append($msg_final);
+                      }
+
+                      //console.log("msg: "+$JSON_data.messages[i].msg);
+                    }
+                    if( $temp_cont.find(".indiv").length > 0 ){
+                        /* FIXME: The former message should not be added in a diferent container inside cb-hback. */
+                        $rec_container.find(".cb-hist").prepend($temp_cont);
+                        var $objDiv = $rec_container.find(".cb-hback");
+                        $objDiv.scrollTop($objDiv[0].scrollHeight);
+                    }
                 }
+            } else{ // Just add last messages to the bottom of history.
+                if( $rec_container.length ){
+                    for (var i = 0; i < $JSON_data.messages.length; i++) {
+                      $msg_final = msg_template.replace(':message_holder:',
+                      $JSON_data.messages[i].msg);
 
-                if( $groupMsg.hasClass("new") ){
-                    $groupMsg.removeClass("new");
-                    $groupMsg.append($msg_final);
-                    img_avatar = img_foto_template.replace(':avatar:',$rec_container.find(".img-holder").attr('src'));
-                    $groupMsg.append(img_avatar);
-                    $rec_container.find(".cb-hist").append($groupMsg);
-                } else {
-                  $groupMsg.append($msg_final);
+                      if($JSON_data.messages[i].emi == id_rec){
+                        $groupMsg = checkChatFlow($rec_container, "m-rcv");
+                      }else {
+                        $groupMsg = checkChatFlow($rec_container, "m-send");
+                      }
+
+                      if( $groupMsg.hasClass("new") ){
+                        $groupMsg.removeClass("new");
+                        $groupMsg.append($msg_final);
+                        /* FIXME: image appear in both m-rcv and m-send. should only do in m-rcv. */
+                        img_avatar = img_foto_template.replace(':avatar:',$rec_container.find(".img-holder").attr('src'));
+                        $groupMsg.append(img_avatar);
+
+                        $rec_container.find(".cb-hist").append($groupMsg);
+                      } else {
+                        $groupMsg.append($msg_final);
+                      }
+
+                      var $objDiv = $rec_container.find(".cb-hback");
+                      $objDiv.scrollTop($objDiv[0].scrollHeight);
+                      //console.log("msg: "+$JSON_data.messages[i].msg);
+                    }
                 }
-
-                var $objDiv = $rec_container.find(".cb-hback");
-                $objDiv.scrollTop($objDiv[0].scrollHeight);
-              }
-
-              //console.log("msg: "+$JSON_data.messages[i].msg);
             }
           } else {
-            console.log("No hay mensajes para esta combersacion. ID: "+id_rec);
+            /* If a request with add_more=true has 0 result means
+                that all the former message has been sent.
+              The div with class chat-start will prevent the 'scroll' event listener to
+                ask for more former messages when the scroll bar is close to the top. */
+            if( add_more && $rec_container.find(".chat-start").length == 0 ){
+                $rec_container.find(".cb-hist").prepend(chat_start);
+            }
+            console.log("THERE IS NO MESSAGE FOR THIS REQUEST. ID: "+id_rec);
           }
+          // Remove loader to enable 'scroll' event listener to ask for more former messages.
+          $rec_container.find(".cb-hback").find(".loader-cont").remove();
         },
         error: function(result) {
           console.log("AJAX NOT WORKING (loadHist) ***");
         }
       });
+  }
+
+  /* Reload the history of all chat-box.
+  This should be used when the connection has been re-established. */
+  function loadChatsHist($chats){
+      if( $chats.length ){
+        $chats.each(function() {
+            loadHist($(this).attr('id'), 15, true);
+        });
+      }
   }
 
   /* This function is called from onClose event to try to recover
@@ -261,16 +333,36 @@ $(document).ready(function () {
     $chatBox.find(".cb-bhback").addClass("show-alert");
   }
 
-  /* Function that is called for the event scroll in every chat-box.
-    If the scroll of the history arrive to the bottom, the alert get hide.*/
+  /* Function that is called for the event 'scroll' in every chat-box.
+    If the scroll of the history arrive to the bottom, the alert get hide.
+    If the scroll is near the top of the history then the function loadHist
+      will be called with add_more=true to load former messages. */
   function scrollToBottom(e){
     var elem = $(e.currentTarget);
-    if (elem[0].scrollHeight - elem.scrollTop() == elem.outerHeight())
-    {
+    if ( elem[0].scrollHeight - elem.scrollTop() == elem.outerHeight() ){
         elem.parent().removeClass("show-alert");
+    } else if( elem.scrollTop() <= 50
+      && elem.closest(".cb").find(".loader-cont").length == 0
+      && elem.closest(".cb").find(".chat-start").length == 0 ) { // The existence of this class means that the chat box has already request all the former messages.
+        loadHist(elem.closest(".cb").attr('id'), 15, false, true);
     }
   }
 
+  function closeSession() {
+    $.ajax({
+      data: "type=closesession",
+      url: php_responce,
+      type: "GET",
+      success: function(data) {
+          $JSON_data = JSON.parse(data);
+          if($JSON_data.success == 1){
+            location.reload();
+          } else {
+            alert("EXIT NOT SUCCESS");
+          }
+      }
+    })
+  }
 
   $.fn.serializeObject = function()
   {
@@ -479,12 +571,15 @@ $(document).ready(function () {
       $(this).parent().removeClass("show-alert");
   })
 
+  $("#closeSession").on("click", function(ev) {
+      closeSession();
+  })
+
   /* Sign in formulary. It hides when the user is logged. */
   $("#sign-form").submit(function(ev) {
       ev.preventDefault();
       $query = $("#sign-form").serialize();
       $query = $query.concat("&type=sign");
-      //console.log($query);
 
       $.ajax({
       data: $query,
@@ -497,6 +592,8 @@ $(document).ready(function () {
           if( $JSON_data.user_id >= 0 ){
             $("#sign-container").fadeOut("fast");
             isSessionAlive(conn);
+
+            loadChatsHist($(".cb"));
           } else {
             alert("El usuario no existe o la contraseña es incorrecta.");
           }
@@ -514,7 +611,5 @@ $(document).ready(function () {
 
   // START ROUTINE  <<<<
 
-  newChat("colorless_41",null);
-  newChat("sebastian",null);
 
 })
