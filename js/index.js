@@ -13,18 +13,22 @@ $(document).ready(function () {
 
   var template = '<div id=":dest_id:" class="cb">'+
   '<img src=":avatar:" class="img-holder" alt="foto" />'+
-  '<div class="chat-box">'+
-  '<div class="cb-head">:nickname:<div class="btn-quit">X</div></div>'+
-  '<div class="cb-bhback">'+
-  '<div class="hist-alert">Hay un nuevo mensaje. Baja para verlo.</div>'+
-  '<div class="cb-hback"><div class="cb-hist"></div></div> </div>'+
-  '<div class="cb-input">'+
-  '<form class="cb-form" action="index.html" method="post">'+
-  '<input type="text" name="message" autocomplete="off">'+
-  '<input type="hidden" name="dest_id" value=":dest_id:">'+
-  '</form>'+
-  '</div>'+
-  '</div></div>';
+    '<div class="chat-box">'+
+      '<div class="cb-head">:nickname:<div class="btn-quit">X</div></div>'+
+      '<div class="cb-body">'+
+        '<div class="cb-bhback">'+
+          '<div class="hist-alert">Hay un nuevo mensaje. Baja para verlo.</div>'+
+          '<div class="cb-hback"><div class="cb-hist"></div></div>'+
+        '</div>'+
+        '<div class="cb-input">'+
+          '<form class="cb-form" action="index.html" method="post">'+
+            '<textarea class="ta-in" type="text" placeholder="Escribe un mensaje" name="message" autocomplete="off"></textarea>'+
+            '<input type="hidden" name="dest_id" value=":dest_id:">'+
+          '</form>'+
+        '</div>'+
+      '</div>'
+    '</div>'+
+  '</div>';
 
   var msg_template = '<span class="indiv"><div class="cb-hist-msg"><div class="cb-hm-text">'+
   ':message_holder:'+
@@ -213,9 +217,10 @@ $(document).ready(function () {
                       if( $groupMsg.hasClass("new") ){
                         $groupMsg.removeClass("new");
                         $groupMsg.append($msg_final);
-                        /* FIXME: image appear in both m-rcv and m-send. should only do in m-rcv. */
-                        img_avatar = img_foto_template.replace(':avatar:',$rec_container.find(".img-holder").attr('src'));
-                        $groupMsg.append(img_avatar);
+                        if( $groupMsg.hasClass('m-rcv') ){
+                          img_avatar = img_foto_template.replace(':avatar:',$rec_container.find(".img-holder").attr('src'));
+                          $groupMsg.append(img_avatar);
+                        }
 
                         $temp_cont.append($groupMsg);
                       } else {
@@ -246,9 +251,10 @@ $(document).ready(function () {
                       if( $groupMsg.hasClass("new") ){
                         $groupMsg.removeClass("new");
                         $groupMsg.append($msg_final);
-                        /* FIXME: image appear in both m-rcv and m-send. should only do in m-rcv. */
-                        img_avatar = img_foto_template.replace(':avatar:',$rec_container.find(".img-holder").attr('src'));
-                        $groupMsg.append(img_avatar);
+                        if( $groupMsg.hasClass('m-rcv') ){
+                          img_avatar = img_foto_template.replace(':avatar:',$rec_container.find(".img-holder").attr('src'));
+                          $groupMsg.append(img_avatar);
+                        }
 
                         $rec_container.find(".cb-hist").append($groupMsg);
                       } else {
@@ -499,8 +505,8 @@ $(document).ready(function () {
     if( $(this).closest(".cb").not(".cb-hide").length ) {
         $(this).closest(".chat-box").toggleClass("chat-box-max");
         if( $(this).closest(".chat-box").hasClass("chat-box-max") ) {
-            updateChatBoxes();  // REVIZAR *******************
-            $(this).closest(".chat-box input[name='message']").focus();
+            updateChatBoxes();
+            $(this).closest(".chat-box textarea[name='message']").focus();  // FIXME
         }
     }
     /* If chat-box in chat-excess is clicked, this one change
@@ -525,7 +531,7 @@ $(document).ready(function () {
       updateCEStatus();
   })
 
-  // Display and hide the chat-excess selector. // ARREGLAR
+  // Display and hide the chat-excess selector.
   $chatContainer.on('click', '.chat-excess', function (ev) {
       $(".ce-select").toggleClass("hide");
   })
@@ -534,10 +540,10 @@ $(document).ready(function () {
   $chatContainer.on('submit', '.cb-form', function (ev) {
       ev.preventDefault();
       $thisContext = $(this);
-      trimmedValue = jQuery.trim($(this).find("input[name='message']").val());
+      trimmedValue = jQuery.trim($(this).find("textarea[name='message']").val());
 
       if( trimmedValue != "" ){
-          $thisContext.find("input[name='message']").val(trimmedValue);
+          $thisContext.find("textarea[name='message']").val(trimmedValue);
 
           $.ajax({
           data: "type=getsession",
@@ -554,8 +560,12 @@ $(document).ready(function () {
 
               console.log("Esto enviare: "+JSON.stringify($JSON_query));
               conn.send(JSON.stringify($JSON_query));
+              $thisContext.find("textarea[name='message']").val("");
 
-              $thisContext.find("input[name='message']").val("");
+              /* Reset the height of the textarea */
+              $ta = $thisContext.find(".ta-in");
+              $ta.css('height','auto');
+              $ta.css('height',($ta.scrollHeight) + 'px');
           },
           error: function(result) {
               console.log("AJAX NOT WORKING (send message) ***");
@@ -564,7 +574,38 @@ $(document).ready(function () {
       }
   })
 
-  /* When the alert dialog is clicked, the dialog is closed and the scroll go to bottom */
+  /* This event make the enter key press call to the submit event. */
+  $chatContainer.on('keydown', '.ta-in', function(event) {
+      switch(event.keyCode){
+          case 13:
+              if( !event.shiftKey ){
+                  event.preventDefault();
+                  $(this).closest(".cb-form").submit();
+              }
+          break;
+      }
+  });
+
+  /* This event is responsible for the auto height of the textarea inputs.
+      Also it keep the scroll bar in the bottom if it is there when
+      the height of the textarea change. */
+  $chatContainer.on('input', '.ta-in', function(){
+    $hist = $(this).parent().parent().parent().find('.cb-hback');
+    flag = false;
+    if($hist.scrollTop() + $hist.innerHeight() >= $hist[0].scrollHeight){
+      flag = true;
+    }
+
+    this.style.height = 'auto';
+    this.style.height = (this.scrollHeight) + 'px';
+
+    if(flag){
+      $hist.scrollTop($hist[0].scrollHeight);
+    }
+  });
+
+  /* When the alert dialog is clicked, the dialog
+      is closed and the scroll go to bottom */
   $chatContainer.on("click", ".hist-alert", function(ev) {
       $hist = $(this).parent().find(".cb-hback");
       $hist.scrollTop($hist[0].scrollHeight);
@@ -611,5 +652,5 @@ $(document).ready(function () {
 
   // START ROUTINE  <<<<
 
-
+  newChat(null, 2);
 })
