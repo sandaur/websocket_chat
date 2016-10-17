@@ -7,6 +7,7 @@
     $json_responce = array();
     $c = new Conect;
     $conn = $c->getConection();
+      $conn->query("SET NAMES 'utf8'");  // Solve the 'ñ' problem.
 
     // Inicio de sesion. Devuelve id e inicia la sesion
     if( $_GET['type'] == 'sign' ){
@@ -118,6 +119,28 @@
           $json_responce["respuesta"] = $sql;
       }
     }
+    // Return all the users
+    else if( $_GET["type"] == "getcontacts" ){
+      $sql = "SELECT * FROM users";
+      $result = mysqli_query($conn, $sql);
+
+      if (mysqli_num_rows($result) > 0 ) {
+
+          $contacts = array();
+          while($row = mysqli_fetch_assoc($result)) {
+
+              $contact = array();
+              $contact['user_id'] = $row["id"];
+              $contact['nick'] = $row["nick"];
+              $contact['avatar'] = $row["avatar_url"];
+              array_push($contacts, $contact);
+          }
+          $json_responce['contacts'] = $contacts;
+          $json_responce['success'] = "1";
+      } else {
+          $json_responce['success'] = "0";   // No existe el usuario.
+      }
+    }
     // Close session
     else if( $_GET["type"] == "closesession" ){
       session_destroy();
@@ -127,5 +150,6 @@
 
     echo json_encode($json_responce);
     session_write_close();
+
     exit();
  ?>

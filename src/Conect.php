@@ -7,7 +7,7 @@ class Conect
   protected $servername = "localhost";
   protected $username = "root";
   protected $password = "";
-  protected $dbname = "chat_sys";
+  protected $dbname = "chat_bd";
 
   function __construct()
   {

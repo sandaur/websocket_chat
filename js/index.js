@@ -2,7 +2,8 @@ $(document).ready(function () {
 
   /* this is the ip direction that the client will use to connect to the server.
    If you change the port remember to do the same on /bin/chat-server.php */
-  var wsServer = 'ws://181.74.195.247:8080';
+  //var wsServer = 'ws://181.74.195.247:8080';
+  var wsServer = 'ws://localhost:8080';
   var conn = new WebSocket(wsServer);
   bindConnEvents(conn);
 
@@ -36,6 +37,26 @@ $(document).ready(function () {
 
   var excess_template = '<div class="ce hide"><div class="ce-select hide"></div><div class="chat-excess">'+
   '<p>0</p></div></div>';
+
+  var manager_template = '<div class="cm-cont">'+
+    '<div class="chat-manager">'+
+      '<div class="cm-contacts">'+
+        '<div class="cm-cdisplay">'+
+        '</div>'+
+      '</div>'+
+      '<div class="cm-search">'+
+      '<form class="cb-form" action="" method="post">'+
+        '<input class="in-search" type="text" name="busqueda" placeholder="Buscar">'+
+      '</form>'+
+      '</div>'+
+    '</div>'+
+  '</div>';
+  var contact_display = '<div class="cm-person" data-id=":id:">'+
+    '<div class="person-img">'+
+      '<img src=":avatar:" class="" alt="foto" />'+
+    '</div>'+
+    '<div class="person-name"><span>:nombre:</span></div>'+
+  '</div>';
 
   var msgGroup_template = '<span class=":from: msg-group new"></span>';
   var img_foto_template = '<img src=":avatar:" alt="foto" />';
@@ -78,7 +99,7 @@ $(document).ready(function () {
       - manage the height of the maximised chat-box when the height of
         the window is lower than the height of a maximised chat-box.*/
   function updateChatBoxes() {
-    var xx = Math.round(($(window).width()-cb_size)/cb_size);
+    var xx = Math.round(($(window).width()-cb_size)/cb_size)-1;
     var yy = $(window).height();
     if ( xx > $(".cb").not(".cb-hide").size() ) {
       var cbVisible = xx - $(".cb").not(".cb-hide").size();
@@ -296,6 +317,29 @@ $(document).ready(function () {
       }
   }
 
+  function loadContacts(){
+      $query = "type=getcontacts";
+      $.ajax({
+        data: $query,
+        url: php_responce,
+        type: "GET",
+        success: function(data) {
+            $JSON_data = JSON.parse(data);
+            $cDisplay = $('.chat-manager');
+            if($JSON_data.success == 1){
+              for(i = 0; i < $JSON_data.contacts.length; i++){
+                $person = contact_display.replace(":nombre:", $JSON_data.contacts[i].nick)
+                .replace(":id:", $JSON_data.contacts[i].user_id)
+                .replace(":avatar:", $JSON_data.contacts[i].avatar);
+                $(".cm-cdisplay").append($($person));
+              }
+            } else {
+              alert("GETCONTACTS NOT SUCCESS");
+            }
+        }
+      })
+  }
+
   /* This function is called from onClose event to try to recover
    the connection with the server. Is called inside a setInterval. */
   function tryReconect() {
@@ -486,11 +530,6 @@ $(document).ready(function () {
       }
   }
 
-  // Creates a new chat from a nickname.
-  $("#new-chat").click(function (ev) {
-      newChat(nc_nick=$("#dest-id").val());
-  })
-
   /* Calls the functions that manage the display of the of
    the chat-container when the resize event is called.*/
   $( window ).bind('resize',function() {
@@ -604,6 +643,22 @@ $(document).ready(function () {
     }
   });
 
+  /* Display and hide contacts in the chat manager depending on the input. */
+  $chatContainer.on('input', '.in-search', function(){
+    search = $(this).val().trim();
+    if( search != "" ){
+      $(".cm-person").each(function(){
+        if( $(this).find(".person-name span").text().toLowerCase().indexOf(search) != -1 ){
+          $(this).removeClass("hide");
+        } else {
+          $(this).addClass("hide");
+        }
+      })
+    }else {
+      $(".cm-person").removeClass("hide");
+    }
+  });
+
   /* When the alert dialog is clicked, the dialog
       is closed and the scroll go to bottom */
   $chatContainer.on("click", ".hist-alert", function(ev) {
@@ -614,6 +669,10 @@ $(document).ready(function () {
 
   $("#closeSession").on("click", function(ev) {
       closeSession();
+  })
+
+  $chatContainer.on('click', '.cm-person', function(){
+    newChat(null, $(this).attr('data-id'));
   })
 
   /* Sign in formulary. It hides when the user is logged. */
@@ -647,10 +706,11 @@ $(document).ready(function () {
 
   // START ROUTINE  >>>>
 
+  $chatContainer.append($(manager_template));
   $chatContainer.append($(excess_template));
   isSessionAlive(conn);
+  loadContacts();
 
   // START ROUTINE  <<<<
 
-  newChat(null, 2);
 })
