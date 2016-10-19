@@ -1,22 +1,20 @@
 body {
   margin: 0;
+  padding: 0;
   font-family: Roboto;
 }
 
-#app-container {
+#app-container {  /* ###### */
   width: 100%;
   overflow: hidden;
 }
 
-#chat-container {
-  background-color: #b8b8b8;
-  padding-left: 9px;
+#chat-container {  /* ###### */
+  /*background-color: #b8b8b8;*/
+  padding-left: 0px;
   position: fixed;
   bottom: 0;
   right: 0;
-
-  z-index: 10;
-  transition: width 2s ease;
 }
 
 .cm-cont {
@@ -34,15 +32,20 @@ body {
     bottom: 0;
   display: flex;
   flex-direction: column;
+
+  -webkit-box-shadow: 0px 0px 6px 0px rgba(0,0,0,0.75);
+  -moz-box-shadow: 0px 0px 6px 0px rgba(0,0,0,0.75);
+  box-shadow: 0px 0px 6px 0px rgba(0,0,0,0.75);
 }
 
 .cm-contacts {
   width: 100%;
   min-height: 40px;
   flex-grow: 1;
-  background-color: #575552;
+  background-color: #39475B;
   overflow-y: auto;
   overflow-x: hidden;
+  position: relative;
 }
 
 .cm-cdisplay {
@@ -52,6 +55,7 @@ body {
   width: 220px;
   height: 100%;
   padding: 10px 10px;
+  position: absolute;
 }
 
 .cm-person {
@@ -63,6 +67,7 @@ body {
   flex-flow: row;
   overflow: hidden;
   margin-bottom: 6px;
+  cursor: pointer;
 }
 
 .person-img {
@@ -80,7 +85,7 @@ body {
 
 .person-name {
   flex-grow: 4;
-  background-color: #256965;
+  background-color: #12A563;
   position: relative;
 }
 
@@ -93,13 +98,14 @@ body {
 
 .cm-search {
   width: 100%;
-  height: 50px;
+  height: 30px;
   background-color: #363030;
 }
 
 .cm-search form{
   width: 100%;
   height: 100%;
+  position: relative;
 }
 
 .cm-search input{
@@ -108,15 +114,16 @@ body {
             box-sizing: border-box;
   width: 100%;
   height: 100%;
-  padding: 0px 10px;
+  padding-left: 22px;
+  padding-right: 10px;
+  border: none;
 }
 
-.cb {
-  margin-right: 9px;
+.cb {  /* ###### */
+  margin-right: 14px;
   width: 265px;     /* Ancho de cada Chat */
   height: 26px;
   float: right;
-  transition: .3s ease;
   position: relative;
 }
 
@@ -142,7 +149,7 @@ body {
   height: 26px !important;
 }
 
-.ce {
+.ce { /* ###### */
   padding-right: 9px;
   width: 34px;
   height: 26px;
@@ -158,73 +165,95 @@ body {
   z-index: 20;
 }
 
-.chat-excess {
-  width: 34px;
+.chat-excess {  /* ###### */
+  width: 100%;
   height: 100%;
-  background-color: #154f2f;
+  background-color: #12A563;
   bottom: 0;
+  cursor: pointer;
+
+  -webkit-box-shadow: 0px 0px 6px 0px rgba(0,0,0,0.75);
+  -moz-box-shadow: 0px 0px 6px 0px rgba(0,0,0,0.75);
+  box-shadow: 0px 0px 6px 0px rgba(0,0,0,0.75);
+
+  border-radius: 2px 2px 0px 0px;
+  -moz-border-radius: 2px 2px 0px 0px;
+  -webkit-border-radius: 2px 2px 0px 0px;
 }
 
-.chat-excess p {
-  margin: 0;
-  padding-top: 3px;
-  font-weight: bold;
-  text-align: center;
-}
-
-.chat-box {
+.chat-box { /* ###### */
   position: absolute;
   bottom: 0;
   width: 100%;
   height: 100%;
 
-  /* animacion para abrir y cerrar chat
-  transition: .1s ease; */
+  -webkit-box-shadow: 0px 0px 6px 0px rgba(0,0,0,0.75);
+  -moz-box-shadow: 0px 0px 6px 0px rgba(0,0,0,0.75);
+  box-shadow: 0px 0px 6px 0px rgba(0,0,0,0.75);
+
+  border-radius: 2px 2px 0px 0px;
+  -moz-border-radius: 2px 2px 0px 0px;
+  -webkit-border-radius: 2px 2px 0px 0px;
+
+  /* animacion para abrir y cerrar chat*/
+  transition: .2s ease;
   overflow: hidden;
 }
 
-.btn-quit {
-  text-align: center;
-  font-weight: bold;
-  width: 20px;
-  height: 100%;
-  background-color: #2c3e50;
-  float: right;
-}
-
-.chat-box-max {
+.chat-box-max {  /* ###### */
   height: 340px;
 }
 
-.cb-head {
+.cb-head {  /* ###### */
   width: 100%;
   height: 26px;
-  background-color: #1c6c41;
-  font-weight: bold;
+  background-color: #12A563;  /* head-background */
   z-index: 10;
+  position: relative;
+  cursor: pointer;
+
+  -webkit-box-shadow: 0px 3px 0px -1px rgba(0,0,0,0.2);
+  -moz-box-shadow: 0px 3px 0px -1px rgba(0,0,0,0.2);
+  box-shadow: 0px 3px 0px -1px rgba(0,0,0,0.2);
 }
 
-.cb-body{
+.cb-name{  /* ###### */
+  font-weight: bold;
+  position: absolute;
+  top: 2px;
+  left: 22px;
+  transition: .1s ease;
+}
+
+.cb-name:hover{  /* ###### */
+  color: #c6c6c6;
+}
+
+.cb-close{  /* ###### */
+  transition: .2s ease;
+}
+
+.cb-close:hover{  /* ###### */
+  color: #c6c6c6;
+}
+
+.cb-body{  /* ###### */
   height: 314px;
   display: flex;
   flex-direction: column;
 }
 
 .chat-box.chat-box-max .cb-input {
-  display: inherit;
+  visibility: visible;
 }
 
-.cb-bhback {
-  position: relative;
+.cb-bhback {  /* ###### */
   width: 100%;
   max-height: 320px;
-  flex-grow: 1;/*
-       top: 26px;
-       bottom: 45px;  Footer Height */
-  background-color: #9f22d2;
+  flex-grow: 1;
 }
 
-.cb-hback {
+.cb-hback {  /* ###### */
   position: relative;
   width: 100%;
   height: 100%;
@@ -233,32 +262,30 @@ body {
   min-height: 80%;
   transition: min-height 0.15s ease-out;
 
-  background-color: #6C7A89;
+  background-color: #39475B;  /* chat-background */
   overflow-y: auto ;
   overflow-x: hidden;
 }
 
-.hist-alert {
-  position: relative;
+.hist-alert {  /* ###### */
   width: 100%;
   height: 0%;
   max-height: 20%;
   transition: min-height 0.15s ease-out;
 
-  z-index: 10;
   background-color: #666666;
   overflow: hidden;
 }
 
-.show-alert .cb-hback {
+.show-alert .cb-hback {  /* ###### */
   height: 80%;
 }
 
-.show-alert .hist-alert{
+.show-alert .hist-alert{  /* ###### */
   height: 20%;
 }
 
-.cb-hist {
+.cb-hist {  /* ###### */
   position: absolute;
   width: 194px;  /* Ancho del Chat menos el ancho del scroll*/
   height: 100%;
@@ -266,9 +293,7 @@ body {
 }
 
 .cb-input {
-  /*position: absolute;
-  bottom: 0;*/
-  display: none;
+  visibility: hidden;
   width: 100%;
   min-height: 45px;
   max-height: 80px;
@@ -292,6 +317,8 @@ body {
   font-family: Roboto;
   font-size: 14px;
   border: none;
+  margin: 0;
+  border-top: 1px solid #c6c6c6;
   resize: none;
   overflow-y: auto;
 }
@@ -304,7 +331,7 @@ span.indiv{
   display: block;
   width: auto;
   max-width: 100%;
-  margin-bottom: 1px;
+  margin-bottom: 2px;
 }
 
 span.msg-group {
@@ -317,7 +344,7 @@ span.msg-group img {
   position: absolute;
   left: -40px;
   bottom: 7px;
-  border-radius: 7px;
+  border-radius: 4px;
 
   width: 30px;
   height: 30px;
@@ -353,15 +380,20 @@ span.m-rcv, span.m-rcv .indiv {
 }
 
 .m-send .cb-hist-msg{
-  background-color: #c0c5d1;
+  background-color: #12A563;
+  border-bottom-left-radius: 14px;
+  border-top-left-radius: 14px;
 }
 
 .m-rcv .cb-hist-msg{
-  background-color: #76828f;
+  background-color: #344153;
+  color: #e0e0e0;
+  border-top-right-radius: 14px;
+  border-bottom-right-radius: 14px;
 }
 
 .cb-hm-text {
-  margin: 3px 5px;
+  margin: 5px 9px;
   word-wrap: break-word;
 }
 

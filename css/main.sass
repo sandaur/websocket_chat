@@ -1,0 +1,122 @@
+// Colors
+$color-main: #12A563
+$color-background: #39475B
+$color-aux1: #344153
+$color-aux2: #e0e0e0
+$color-cbhead-hover: #c6c6c6
+$color-placeholder: #9f22d2
+
+// Sizing & Spacing
+$width-chatbox: 265px
+$height-chat-maxi: 340px
+$height-comp-mini: 26px
+
+$space-bt-chat: 14px
+
+// @mixins
+=mini-component($width)
+  position: relative
+  width: $width
+  height: $height-comp-mini
+
+=absolute-component
+  -webkit-box-shadow: 0px 0px 6px 0px rgba(0,0,0,0.75)
+  -moz-box-shadow: 0px 0px 6px 0px rgba(0,0,0,0.75)
+  box-shadow: 0px 0px 6px 0px rgba(0,0,0,0.75)
+
+  border-radius: 2px 2px 0px 0px
+  -moz-border-radius: 2px 2px 0px 0px
+  -webkit-border-radius: 2px 2px 0px 0px
+
+  width: 100%
+  height: 100%
+
+
+*
+  margin: 0
+  padding: 0
+  font-family: Roboto
+
+#chat-container
+  position: fixed
+  right: 0
+  bottom: 0
+
+.cb
+  +mini-component($width-chatbox)
+  float: right
+  margin-right: $space-bt-chat
+  .chat-box
+    +absolute-component
+    position: absolute
+    bottom: 0
+    transition: .2s ease;
+    // overflow: hidden
+    &-max
+      height: $height-chat-maxi
+    .cb-head
+      position: relative
+      width: 100%
+      height: $height-comp-mini
+      background-color: $color-main
+      cursor: pointer
+      z-index: 100
+      -webkit-box-shadow: 0px 3px 0px -1px rgba(0,0,0,0.2)
+      -moz-box-shadow: 0px 3px 0px -1px rgba(0,0,0,0.2)
+      box-shadow: 0px 3px 0px -1px rgba(0,0,0,0.2)
+      .cb-name
+        position: absolute
+        top: 2px
+        left: 22px
+        font-weight: bold
+        transition: .1s ease
+        &:hover
+          color: $color-cbhead-hover
+      .cb-close
+        transition: .2s ease
+        &:hover
+          color: $color-cbhead-hover
+    .cb-body
+      height: ($height-chat-maxi - $height-comp-mini)
+      display: flex
+      flex-flow: column
+      .cb-bhback
+        width: 100%
+        max-height: 320px
+        flex-grow: 1
+        .show-alert .hist-alert
+          height: 20%
+        .hist-alert
+          width: 100%
+          height: 0%
+          max-height: 20%
+          background-color: $color-placeholder
+          overflow: hidden
+        .show-alert .cb-hback
+          height: 80%
+        .cb-hback
+          position: relative
+          width: 100%
+          height: 100%
+          max-height: 100%
+          min-height: 80%
+          transition: min-height 0.15s ease-out
+          background-color: $color-background
+          overflow-y: auto
+          overflow-x: hidden
+          .cb-hist
+            position: absolute
+            width: ($width-chatbox - (23+48))
+            height: 100%
+            margin-left: 48
+
+
+
+.ce
+  +mini-component(34px)
+  float: left
+  margin-right: 10px
+  .chat-excess
+    +absolute-component
+    cursor: pointer
+    background-color: $color-main

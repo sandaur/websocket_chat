@@ -2,8 +2,8 @@ $(document).ready(function () {
 
   /* this is the ip direction that the client will use to connect to the server.
    If you change the port remember to do the same on /bin/chat-server.php */
-  //var wsServer = 'ws://181.74.195.247:8080';
-  var wsServer = 'ws://localhost:8080';
+  var wsServer = 'ws://181.74.195.247:8080';
+  //var wsServer = 'ws://localhost:8080';
   var conn = new WebSocket(wsServer);
   bindConnEvents(conn);
 
@@ -15,7 +15,10 @@ $(document).ready(function () {
   var template = '<div id=":dest_id:" class="cb">'+
   '<img src=":avatar:" class="img-holder" alt="foto" />'+
     '<div class="chat-box">'+
-      '<div class="cb-head">:nickname:<div class="btn-quit">X</div></div>'+
+      '<div class="cb-head">'+
+        '<span class="cb-name">:nickname:</span>'+
+        '<span class="icon-x cb-close" style="position:absolute; right:4px; top:4px;"></span>'+
+      '</div>'+
       '<div class="cb-body">'+
         '<div class="cb-bhback">'+
           '<div class="hist-alert">Hay un nuevo mensaje. Baja para verlo.</div>'+
@@ -36,7 +39,7 @@ $(document).ready(function () {
   '</class></div></span>';
 
   var excess_template = '<div class="ce hide"><div class="ce-select hide"></div><div class="chat-excess">'+
-  '<p>0</p></div></div>';
+  '<span class="icon-chat-alt-fill" style="position:absolute; left:9px; top:4px;"></span></div></div>';
 
   var manager_template = '<div class="cm-cont">'+
     '<div class="chat-manager">'+
@@ -46,6 +49,7 @@ $(document).ready(function () {
       '</div>'+
       '<div class="cm-search">'+
       '<form class="cb-form" action="" method="post">'+
+        '<span class="icon-magnifying-glass" style="position:absolute; top:7px; left:3px"></span>'+
         '<input class="in-search" type="text" name="busqueda" placeholder="Buscar">'+
       '</form>'+
       '</div>'+
@@ -126,6 +130,7 @@ $(document).ready(function () {
   /* Checks if there are a user registered in _SESSION. It is used too
   to register the id of this connection in the websocket server.*/
   function isSessionAlive(p_conn) {
+    loadContacts();
     $query = "type=sessionAlive";
 
     $.ajax({
@@ -327,6 +332,7 @@ $(document).ready(function () {
             $JSON_data = JSON.parse(data);
             $cDisplay = $('.chat-manager');
             if($JSON_data.success == 1){
+              $(".cm-person").remove();
               for(i = 0; i < $JSON_data.contacts.length; i++){
                 $person = contact_display.replace(":nombre:", $JSON_data.contacts[i].nick)
                 .replace(":id:", $JSON_data.contacts[i].user_id)
@@ -564,7 +570,7 @@ $(document).ready(function () {
         updateChatBoxes();
         updateCEStatus();
     }
-  }).on('click', '.btn-quit', function (ev) {  // Close chat-box
+  }).on('click', '.cb-close', function (ev) {  // Close chat-box
       $(this).closest(".cb").remove();
       updateChatBoxes();
       updateCEStatus();
@@ -709,7 +715,6 @@ $(document).ready(function () {
   $chatContainer.append($(manager_template));
   $chatContainer.append($(excess_template));
   isSessionAlive(conn);
-  loadContacts();
 
   // START ROUTINE  <<<<
 

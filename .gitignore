@@ -7,6 +7,10 @@ Desktop.ini
 
 vendor
 composer.lock
+css/.sass-cache
+
+# Scripts
+
 
 # Recycle Bin used on file shares
 $RECYCLE.BIN/
