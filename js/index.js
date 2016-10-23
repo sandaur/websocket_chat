@@ -22,7 +22,9 @@ $(document).ready(function () {
       '<div class="cb-body">'+
         '<div class="cb-bhback">'+
           '<div class="hist-alert">Hay un nuevo mensaje. Baja para verlo.</div>'+
-          '<div class="cb-hback"><div class="cb-hist"></div></div>'+
+          '<div class="cb-hback"><div class="cb-hist">'+
+
+          '</div></div>'+
         '</div>'+
         '<div class="cb-input">'+
           '<form class="cb-form" action="index.html" method="post">'+
